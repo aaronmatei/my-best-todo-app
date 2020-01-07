@@ -1,5 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import TodosContext from '../context';
+import axios from 'axios';
+import uuidv4 from 'uuid';
 
 function TodoForm() {
   const [todo, setTodo] = useState('');
@@ -16,12 +18,30 @@ function TodoForm() {
     }
   }, [currentTodo.id]);
 
-  const handleSubmit = e => {
+  const handleSubmit = async e => {
     e.preventDefault();
     if (currentTodo.text) {
-      dispatch({ type: 'UPDATE_TODO', payload: todo });
+      const response = await axios.patch(
+        `https://hooks-api.aronique.now.sh/todos/${currentTodo.id}`,
+        {
+          text: todo
+        }
+      );
+      dispatch({ type: 'UPDATE_TODO', payload: response.data });
     } else {
-      dispatch({ type: 'ADD_TODO', payload: todo });
+      const response = await axios.post(
+        'https://hooks-api.aronique.now.sh/todos',
+        {
+          id: uuidv4(),
+          text: todo,
+          complete: false
+        }
+      );
+      if (response.data.text === '') {
+        alert('No data');
+        setTodo('');
+      }
+      dispatch({ type: 'ADD_TODO', payload: response.data });
     }
     setTodo('');
   };

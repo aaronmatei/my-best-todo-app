@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import TodosContext from '../context';
+import axios from 'axios';
 
 function TodoList() {
   const { state, dispatch } = useContext(TodosContext);
@@ -18,9 +19,15 @@ function TodoList() {
             <span
               className={`flex-1 ml-12 cursor-pointer ${todo.complete &&
                 'line-through text-red-600'}`}
-              onDoubleClick={() =>
-                dispatch({ type: 'TOGGLE_TODO', payload: todo })
-              }
+              onDoubleClick={async () => {
+                const response = await axios.patch(
+                  `https://hooks-api.aronique.now.sh/todos/${todo.id}`,
+                  {
+                    complete: !todo.complete
+                  }
+                );
+                dispatch({ type: 'TOGGLE_TODO', payload: response.data });
+              }}
             >
               {todo.text}
             </span>
@@ -36,7 +43,12 @@ function TodoList() {
               />
             </button>
             <button
-              onClick={() => dispatch({ type: 'REMOVE_TODO', payload: todo })}
+              onClick={async () => {
+                await axios.delete(
+                  `https://hooks-api.aronique.now.sh/todos/${todo.id}`
+                );
+                dispatch({ type: 'REMOVE_TODO', payload: todo });
+              }}
             >
               <img
                 src='https://icon.now.sh/delete/8b0000'
